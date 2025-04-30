@@ -5,6 +5,7 @@
 // SPDX-License-Identifier: AGPL-3.0-or-later
 
 using System.Numerics;
+using Content.Server.Theta.ShipEvent.Components;
 using Content.Shared._Mono.Radar;
 using Content.Shared.Shuttles.Components;
 using Robust.Shared.Map;
@@ -90,19 +91,64 @@ public sealed partial class RadarBlipSystem : EntitySystem
                 if (distance > component.MaxRange)
                     continue;
 
-                if (blip.RequireNoGrid && blipGrid != null // if we want no grid but we are on a grid
-                    || !blip.VisibleFromOtherGrids && blipGrid != radarGrid) // or if we don't want to be visible from other grids but we're on another grid
-                    continue; // don't show this blip
+                var blipGrid = _xform.GetGrid(blipUid);
 
-                // due to PVS being a thing, things will break if we try to parent to not the map or a grid
-                var coord = blipXform.Coordinates;
-                if (blipXform.ParentUid != blipXform.MapUid && blipXform.ParentUid != blipGrid)
-                    coord = _xform.WithEntityId(coord, blipGrid ?? blipXform.MapUid!.Value);
-                // we're parented to either the map or a grid and this is relative velocity so account for grid movement
-                if (blipGrid != null)
-                    blipVelocity -= _physics.GetLinearVelocity(blipGrid.Value, coord.Position);
+                // Check if this is a shield radar blip without a grid
+                // If so, don't display it (fixes grid-orphaned shield generators)
+                if (HasComp<CircularShieldRadarComponent>(blipUid) && blipGrid == null)
+                    continue;
 
-                blips.Add((GetNetCoordinates(coord), blipVelocity, blip.Scale, blip.RadarColor, blip.Shape));
+                if (blip.RequireNoGrid)
+                {
+                    if (blipGrid != null)
+                        continue;
+
+                    // For free-floating blips without a grid, use world position with null grid
+                    blips.Add((null, blipPosition, blip.Scale, blip.RadarColor, blip.Shape));
+                }
+                else if (blip.VisibleFromOtherGrids)
+                {
+                    // For blips that should be visible from other grids, add them regardless of grid
+                    // If on a grid, use grid-relative coordinates
+                    if (blipGrid != null)
+                    {
+                        // Local position relative to grid
+                        var gridMatrix = _xform.GetWorldMatrix(blipGrid.Value);
+                        Matrix3x2.Invert(gridMatrix, out var invGridMatrix);
+                        var localPos = Vector2.Transform(blipPosition, invGridMatrix);
+
+                        // Add grid-relative blip with grid entity ID
+                        blips.Add((GetNetEntity(blipGrid.Value), localPos, blip.Scale, blip.RadarColor, blip.Shape));
+                    }
+                    else
+                    {
+                        // Fallback to world position with null grid
+                        blips.Add((null, blipPosition, blip.Scale, blip.RadarColor, blip.Shape));
+                    }
+                }
+                else
+                {
+                    // If we're requiring grid, make sure they're on the same grid
+                    if (blipGrid != radarGrid)
+                        continue;
+
+                    // For grid-aligned blips, store grid NetEntity and grid-local position
+                    if (blipGrid != null)
+                    {
+                        // Local position relative to grid
+                        var gridMatrix = _xform.GetWorldMatrix(blipGrid.Value);
+                        Matrix3x2.Invert(gridMatrix, out var invGridMatrix);
+                        var localPos = Vector2.Transform(blipPosition, invGridMatrix);
+
+                        // Add grid-relative blip with grid entity ID
+                        blips.Add((GetNetEntity(blipGrid.Value), localPos, blip.Scale, blip.RadarColor, blip.Shape));
+                    }
+                    else
+                    {
+                        // Fallback to world position with null grid
+                        blips.Add((null, blipPosition, blip.Scale, blip.RadarColor, blip.Shape));
+                    }
+                }
             }
         }
 
