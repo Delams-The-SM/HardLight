@@ -623,7 +623,7 @@
 
 - type: entity
   id: SecurityTechFab
-  parent: BaseLatheLube
+  parent: [ BaseLatheLube, BaseC3ContrabandUnredeemable ]
   name: security techfab
   description: Prints equipment for use by security crew.
   categories: [ HideSpawnMenu ] # Frontier
