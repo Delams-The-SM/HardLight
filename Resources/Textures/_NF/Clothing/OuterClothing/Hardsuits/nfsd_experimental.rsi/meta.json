@@ -1,12 +1,7 @@
 {
     "version": 1,
-<<<<<<< HEAD
-    "license": "CC-BY-NC-SA-4.0",
-    "copyright": "Content created by Bing Guss for Frontier Server",
-=======
     "license": "CC0-1.0",
     "copyright": "Original work by TJohnson. lamia & segment by @noctyrnal",
->>>>>>> c8dd8e215af (TSFMC revamp DO NOT MERGE yet (#320))
     "size": {
         "x": 32,
         "y": 32
