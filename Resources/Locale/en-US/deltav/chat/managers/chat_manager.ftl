@@ -27,8 +27,6 @@ chat-speech-verb-chitinid-1 = clicks
 chat-speech-verb-chitinid-2 = chitters
 chat-speech-verb-chitinid-3 = hisses
 chat-speech-verb-chitinid-4 = buzzes
-<<<<<<< HEAD
-=======
 
 chat-speech-verb-name-kitsune = Kitsune
 chat-speech-verb-kitsune-1 = yelps
@@ -41,4 +39,3 @@ chat-speech-verb-feroxi-1 = blubs
 chat-speech-verb-feroxi-2 = swishes
 chat-speech-verb-feroxi-3 = gnashes
 chat-speech-verb-feroxi-4 = growls
->>>>>>> 0c779f3d75 (Kitsune (#3175))
